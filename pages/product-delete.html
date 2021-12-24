@@ -1,0 +1,92 @@
+<span id="debug">
+
+</span>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyBlmAsV6cYutrA7dRyhAiHm2xDrfOJnxA8",
+      authDomain: "apolo-bengkel.firebaseapp.com",
+      projectId: "apolo-bengkel",
+      storageBucket: "apolo-bengkel.appspot.com",
+      messagingSenderId: "538658758544",
+      appId: "1:538658758544:web:1b311d0be1076c6d745d15",
+      measurementId: "G-ZJ1VWM5ZTC"
+    };
+  
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+
+    const debug = document.getElementById("debug");
+
+    import {
+        getFirestore, doc, getDoc, getDocs, setDoc, collection, addDoc, updateDoc, deleteDoc, deleteField
+    }
+    from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+    const db = getFirestore();
+
+    import { getStorage, ref as RefSto, deleteObject } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
+
+    const storage = getStorage();
+
+    function $_GET(param) {
+        var vars = {};
+        window.location.href.replace( location.hash, '' ).replace( 
+            /[?&]+([^=&]+)=?([^&]*)?/gi,
+            function( m, key, value ) {
+                vars[key] = value !== undefined ? value : '';
+            }
+        );
+
+        if ( param ) {
+            return vars[param] ? vars[param] : null;	
+        }
+        return vars;
+    }
+    var id = $_GET('id');
+
+    debug.textContent = "Menghapus " + id + "....";
+
+    if(id != null){
+        var ref = doc(db, "product", id);
+        const docSnap = await getDoc(ref);
+
+        if(!docSnap.exists()){
+            console.log("Salah id");
+            out()
+        }
+
+        const desertRef = RefSto(storage, "app/foto_produk/"+docSnap.data().category_pr+"/" + docSnap.data().photo_pr);
+        deleteObject(desertRef)
+        .then(() => {
+            console.log("Image Delete");
+        })
+        .catch((error) => {
+            console.log("hadeh");
+        })
+
+        await deleteDoc(ref)
+        .then(() => {
+            console.log("id dihapus");
+            out()
+        })
+        .catch((error) => {
+            console.log("hadeh");
+        })
+    }
+
+    async function out(){
+        debug.textContent = "Menghapus " + id + "....";
+        await sleep(1000);
+        debug.textContent = id + " Berhasil dihapus";
+        await sleep(500);
+        location.href = "tables.html"
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+</script>
+<script src="login.js"></script>

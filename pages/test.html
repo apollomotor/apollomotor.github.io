@@ -1,0 +1,20 @@
+<span id="debug">
+
+</span>
+
+<script>
+    id = 1;
+
+    async function out(){
+        await sleep(3000);
+        debug.textContent = "Menghapus " + id + "yes";
+        console.log("a")
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    window.onload = out;
+</script>
+<script src="login.js"></script>
