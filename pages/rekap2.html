@@ -194,35 +194,8 @@
 					</th>
 				</tr>
 			</thead>
-			<tbody class="text-center">
-				<tr>
-					<td>
-						Oktober
-					</td>
-					<td>
-						2021
-					</td>
-					<td>
-						Rp 10.000.000
-					</td>
-					<td>
-						<a href="#">Lihat Detail</a>
-					</td>
-				</tr>
-				<tr>
-					<td>
-						November
-					</td>
-					<td>
-						2021
-					</td>
-					<td>
-						Rp 10.100.000
-					</td>
-					<td>
-						<a href="#">Lihat Detail</a>
-					</td>
-				</tr>
+			<tbody class="text-center" id="databulan">
+				
 			</tbody>
 		</table>
 		</div>
@@ -247,6 +220,111 @@
   <script async defer src="https://buttons.github.io/buttons.js"></script>
   <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
   <script src="../assets/js/soft-ui-dashboard.min.js?v=1.0.3"></script>
+  <script type="module">
+    import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyBlmAsV6cYutrA7dRyhAiHm2xDrfOJnxA8",
+      authDomain: "apolo-bengkel.firebaseapp.com",
+      projectId: "apolo-bengkel",
+      storageBucket: "apolo-bengkel.appspot.com",
+      messagingSenderId: "538658758544",
+      appId: "1:538658758544:web:1b311d0be1076c6d745d15",
+      measurementId: "G-ZJ1VWM5ZTC"
+    };
+  
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+
+    import {
+        getFirestore, doc, getDoc, getDocs, setDoc, collection, addDoc, updateDoc, deleteDoc, deleteField, orderBy
+    }
+    from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    const db = getFirestore();
+    
+    import { getStorage, ref, getDownloadURL, listAll   } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
+    const storage = getStorage();
+
+    // == READ ==
+
+    var arr = 0;
+    var date = new Date();
+    var bulan = [];
+
+    async function readData(){
+      var hasiltotal = 0;
+      var ref_ch = collection(db, "checkoutHistories");
+      const tabledatabulan = document.getElementById('databulan');
+      const docSnap_ch = await getDocs(ref_ch);
+      var tabledata_bulan = "";
+      var no_repeat;
+
+      let total_bulan = 0;
+
+      docSnap_ch.forEach(data => {
+          if(data.data().status == 'Sudah Datang'){
+            var id = data.data().checkout_jasa[0].item_id;
+            var amount = data.data().checkout_jasa[0].amount;
+            var total = hitungtotal(id, amount);
+
+            var waktu = new Date(data.data().tanggal_pesen);
+
+            var date_w = waktu.getMonth()+1+"-"+waktu.getFullYear();
+            var date_now = date.getMonth()+2+"-"+date.getFullYear();
+
+            if(date_w < date_now){
+                  hasiltotal = total.then(function(response) {
+                    arr = arr + response;
+                    return arr;
+                  })
+                  hasiltotal.then(function(v){
+                    if(no_repeat != date_w){
+                    tabledata_bulan += `
+                    <tr>
+                      <td>${waktu.getMonth()+1}</td>
+                      <td>${waktu.getFullYear()}</td>`;
+                      no_repeat = date_w;
+                      tabledata_bulan += `
+                      <td>${v}</td>
+                    </tr>`; 
+                    }
+                    tabledatabulan.innerHTML = tabledata_bulan;
+                })
+            }
+          }
+      });
+    }
+
+    async function hitungtotal(id, amount){
+        const docSnap_js = await getDoc(doc(db, "jasa", id));
+        var total = docSnap_js.data().harga_js * amount;
+        return total;
+    }
+
+    window.onload = readData;
+  </script>
+
+  <script>
+
+    function alert_pr(id, nama){
+      var yakin = confirm("Apakah kamu ingin menghapus `"+ nama +"` dengan id: `"+ id +"` ?");
+      if(yakin){
+        location.href = "product-delete.html?id="+id;
+      }
+    }
+
+    function alert_js(id, nama){
+      var yakin = confirm("Apakah kamu ingin menghapus `"+ nama +"` dengan id: `"+ id +"` ?");
+      if(yakin){
+        location.href = "jasa-delete.html?id="+id;
+      }
+    }
+
+    function gt() {
+        var txt = document.getElementById("txtWord").value;
+        alert(txt);
+    }
+  </script>
   <script src="login.js"></script>
 </body>
 

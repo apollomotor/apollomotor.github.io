@@ -21,6 +21,8 @@
   <link id="pagestyle" href="../assets/css/soft-ui-dashboard.css?v=1.0.3" rel="stylesheet" />
   <link rel="stylesheet" type="text/css" href="css/util.css">
 	<link rel="stylesheet" type="text/css" href="css/main.css">
+  <script src="table-sort.js"></script>
+
 </head>
 
 <body class="g-sidenav-show  bg-gray-100">
@@ -177,65 +179,12 @@
     <div class="container-fluid py-4">
       <div class="row">
         <div class="col-12">
-		<table class="table">
+		<table class="table table-sort table-arrows">
 			<thead class="text-center">
 				<tr>
-					<th>
-						Kode Barang
+          <th>
+						Antrian
 					</th>
-					<th>
-						Nama Barang
-					</th>
-					<th>
-						Jumlah Barang
-					</th>
-					<th>
-						Harga Barang
-					</th>
-					<th>
-						Edit
-					</th>
-				</tr>
-			</thead>
-			<tbody class="text-center">
-				<tr>
-					<td>
-						iH0h76Lk8eXG7M2TrAHn
-					</td>
-					<td>
-						Oli Gardan Honda
-					</td>
-					<td>
-						50
-					</td>
-					<td>
-						Rp 800.000
-					</td>
-					<td>
-						<input type="submit" value="edit" class="btn btn-warning btn-sm">
-						<input type="submit" value="delete" class="btn btn-danger btn-sm">
-					</td>
-				</tr>
-				<tr>
-					<th colspan="2">
-						Total
-					</th>
-					<th>
-						50
-					</th>
-					<th>
-						Rp 800.000
-					</th>
-				</tr>
-			</tbody>
-		</table>
-		<br>
-		<br>
-		<h4>Data Pemesanan Bulan Ini</h4>
-		<br>
-		<table class="table">
-			<thead class="text-center">
-				<tr>
 					<th>
 						Kode Pesanan
 					</th>
@@ -246,10 +195,10 @@
 						Tgl Pesan
 					</th>
 					<th>
-						Kode Barang
+						Kode Jasa
 					</th>
 					<th>
-						Jumlah Barang
+						Jumlah Jasa
 					</th>
 					<th>
 						Total Harga
@@ -257,66 +206,47 @@
 					<th>
 						Status Pembayaran
 					</th>
+				</tr>
+			</thead>
+			<tbody class="text-center" id="tableatas">
+				
+			</tbody>
+		</table>
+		<br>
+		<br>
+		<h4>Pemesanan</h4>
+		<br>
+		<table class="table table-sort table-arrows">
+			<thead class="text-center">
+				<tr>
+          <th>
+						Antrian
+					</th>
 					<th>
-						Edit
+						Kode Pesanan
+					</th>
+					<th>
+						ID Pembeli
+					</th>
+					<th>
+						Tgl Pesan
+					</th>
+					<th>
+						Kode Jasa
+					</th>
+					<th>
+						Jumlah Jasa
+					</th>
+					<th>
+						Total Harga
+					</th>
+					<th>
+						Status Pembayaran
 					</th>
 				</tr>
 			</thead>
-			<tbody class="text-center">
-				<tr>
-					<td>
-						001
-					</td>
-					<td>
-						2PwZjcxL6PtbRRiOPoSf
-					</td>
-					<td>
-						30-11-2021
-					</td>
-					<td>
-						iH0h76Lk8eXG7M2TrAHn
-					</td>
-					<td>
-						2
-					</td>
-					<td>
-						Rp 32.000
-					</td>
-					<td>
-						<span class="btn btn-warning btn-sm">Belum Lunas</span>
-					</td>
-					<td>
-						<input type="submit" value="edit" class="btn btn-primary btn-sm">
-						<input type="submit" value="delete" class="btn btn-danger btn-sm">
-					</td>
-				</tr>
-				<tr>
-					<td>
-						002
-					</td>
-					<td>
-						rgwegvrbvr32revwgeve
-					</td>
-					<td>
-						30-11-2021
-					</td>
-					<td>
-						iH0h76Lk8eXG7M2TrAHn
-					</td>
-					<td>
-						1
-					</td>
-					<td>
-						Rp 16.000
-					</td>
-					<td>
-						<span class="btn btn-success btn-sm">Lunas</span>
-					</td>
-					<td>
-						<input type="submit" value="edit" class="btn btn-primary btn-sm">
-						<input type="submit" value="delete" class="btn btn-danger btn-sm">
-					</td>
-				</tr>
+			<tbody class="text-center" id="tablebawah">
+
 			</tbody>
 		</table>
 		</div>
@@ -341,6 +271,124 @@
   <script async defer src="https://buttons.github.io/buttons.js"></script>
   <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
   <script src="../assets/js/soft-ui-dashboard.min.js?v=1.0.3"></script>
+  
+  <script type="module">
+    import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyBlmAsV6cYutrA7dRyhAiHm2xDrfOJnxA8",
+      authDomain: "apolo-bengkel.firebaseapp.com",
+      projectId: "apolo-bengkel",
+      storageBucket: "apolo-bengkel.appspot.com",
+      messagingSenderId: "538658758544",
+      appId: "1:538658758544:web:1b311d0be1076c6d745d15",
+      measurementId: "G-ZJ1VWM5ZTC"
+    };
+  
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+
+    import {
+        getFirestore, doc, getDoc, getDocs, setDoc, collection, addDoc, updateDoc, deleteDoc, deleteField, query, orderBy, limit, where
+    }
+    from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    const db = getFirestore();
+    
+    import { getStorage, ref, getDownloadURL, listAll   } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
+    const storage = getStorage();
+
+    // == READ ==
+
+    async function readData(){
+      var ref_ch = query(collection(db, "checkoutHistories"));
+      const tabledataatas = document.getElementById('tableatas');
+      const tabledatabawah = document.getElementById('tablebawah');
+      const docSnap_ch = await getDocs(ref_ch);
+      var tabledata_atas = "";
+      var tabledata_bawah = "";
+
+      docSnap_ch.forEach(data => {
+          if(data.data().status == "Belum_Datang"){
+            var id = data.data().checkout_jasa[0].item_id;
+            var amount = data.data().checkout_jasa[0].amount;
+            var total = hitungtotal(id, amount);
+            var p = Promise.resolve(total);
+
+            var waktu = new Date(data.data().tanggal_pesen);
+            var str = data.data().status;
+            var newstr = str.replace('_', ' ');
+
+            p.then(function(v) {
+              tabledata_bawah += `
+              <tr class="row100 body">
+                <td>${data.data().antrian}</td>
+                <td>${data.id}</td>
+                <td>${data.data().user_id}</td>
+                <td>${waktu.getDate()}-${waktu.getMonth()+1}-${waktu.getFullYear()}</td>
+                <td>${data.data().checkout_jasa[0].item_id}</td>
+                <td>${data.data().checkout_jasa[0].amount}</td>
+                <td>Rp ${v}</td>
+                <td><a  href="konfirmasi.html?id=${data.id}" class="btn btn-primary">${newstr}</a></td>
+              </tr>`;
+              tabledatabawah.innerHTML = tabledata_bawah;
+            });
+          }else if(data.data().status == "Sudah Datang"){
+            var id = data.data().checkout_jasa[0].item_id;
+            var amount = data.data().checkout_jasa[0].amount;
+            var total = hitungtotal(id, amount);
+            var p = Promise.resolve(total);
+
+            var waktu = new Date(data.data().tanggal_pesen);
+            var str = data.data().status;
+            var newstr = str.replace('_', ' ');
+
+            p.then(function(v) {
+              tabledata_atas += `
+              <tr class="row100 body">
+                <td>${data.data().antrian}</td>
+                <td>${data.id}</td>
+                <td>${data.data().user_id}</td>
+                <td>${waktu.getDate()}-${waktu.getMonth()+1}-${waktu.getFullYear()}</td>
+                <td>${data.data().checkout_jasa[0].item_id}</td>
+                <td>${data.data().checkout_jasa[0].amount}</td>
+                <td>Rp ${v}</td>
+                <td><a class="btn btn-primary">${newstr}</a></td>
+              </tr>`;
+              tabledataatas.innerHTML = tabledata_atas;
+            });
+          }
+      });
+    }
+
+    async function hitungtotal(id, amount){
+        const docSnap_js = await getDoc(doc(db, "jasa", id));
+        total = docSnap_js.data().harga_js * amount;  
+        return total;
+    }
+
+    window.onload = readData;
+  </script>
+
+  <script>
+    function alert_pr(id, nama){
+      var yakin = confirm("Apakah kamu ingin menghapus `"+ nama +"` dengan id: `"+ id +"` ?");
+      if(yakin){
+        location.href = "product-delete.html?id="+id;
+      }
+    }
+
+    function alert_js(id, nama){
+      var yakin = confirm("Apakah kamu ingin menghapus `"+ nama +"` dengan id: `"+ id +"` ?");
+      if(yakin){
+        location.href = "jasa-delete.html?id="+id;
+      }
+    }
+
+    function gt() {
+        var txt = document.getElementById("txtWord").value;
+        alert(txt);
+    }
+  </script>
   <script src="login.js"></script>
 </body>
 
