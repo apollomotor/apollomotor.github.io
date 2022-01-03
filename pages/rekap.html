@@ -22,7 +22,7 @@
   <link rel="stylesheet" type="text/css" href="css/util.css">
 	<link rel="stylesheet" type="text/css" href="css/main.css">
   <script src="table-sort.js"></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
 </head>
 
 <body class="g-sidenav-show  bg-gray-100">
@@ -182,10 +182,7 @@
 		<table class="table table-sort table-arrows">
 			<thead class="text-center">
 				<tr>
-          <th>
-						Antrian
-					</th>
-					<th>
+					<th class="order-by-desc">
 						Kode Pesanan
 					</th>
 					<th>
@@ -195,10 +192,10 @@
 						Tgl Pesan
 					</th>
 					<th>
-						Kode Jasa
+						Kode Jasa/Produk
 					</th>
 					<th>
-						Jumlah Jasa
+						Jumlah
 					</th>
 					<th>
 						Total Harga
@@ -214,7 +211,7 @@
 		</table>
 		<br>
 		<br>
-		<h4>Pemesanan</h4>
+		<h4>Pemesanan Jasa</h4>
 		<br>
 		<table class="table table-sort table-arrows">
 			<thead class="text-center">
@@ -249,12 +246,45 @@
 
 			</tbody>
 		</table>
+    <br>
+		<br>
+		<h4>Pemesanan Produk</h4>
+		<br>
+		<table class="table table-sort table-arrows">
+			<thead class="text-center">
+				<tr>
+					<th>
+						Kode Pesanan
+					</th>
+					<th>
+						ID Pembeli
+					</th>
+					<th>
+						Tgl Pesan
+					</th>
+					<th>
+						Kode Produk
+					</th>
+					<th>
+						Jumlah Produk
+					</th>
+					<th>
+						Total Harga
+					</th>
+					<th>
+						Status Pembayaran
+					</th>
+				</tr>
+			</thead>
+			<tbody class="text-center" id="tablebawah_pr">
+
+			</tbody>
+		</table>
 		</div>
 		</div>
     </div>
   </main>
   <!--   Core JS Files   -->
-  <script src="../assets/js/core/popper.min.js"></script>
   <script src="../assets/js/core/bootstrap.min.js"></script>
   <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
   <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
@@ -303,9 +333,11 @@
       var ref_ch = query(collection(db, "checkoutHistories"));
       const tabledataatas = document.getElementById('tableatas');
       const tabledatabawah = document.getElementById('tablebawah');
+      const tabledatabawah_pr = document.getElementById('tablebawah_pr');
       const docSnap_ch = await getDocs(ref_ch);
       var tabledata_atas = "";
       var tabledata_bawah = "";
+      var tabledata_pr = "";
 
       docSnap_ch.forEach(data => {
           if(data.data().status == "Belum_Datang"){
@@ -328,34 +360,138 @@
                 <td>${data.data().checkout_jasa[0].item_id}</td>
                 <td>${data.data().checkout_jasa[0].amount}</td>
                 <td>Rp ${v}</td>
-                <td><a  href="konfirmasi.html?id=${data.id}" class="btn btn-primary">${newstr}</a></td>
+                <td>
+                        <div class="btn-group">
+                          <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            ${newstr}
+                          </button>
+                          <div class="dropdown-menu">
+                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Belum_Datang">Belum Datang</a>
+                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Sudah_Datang">Sudah Datang</a>
+                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dikerjakan">Dikerjakan</a>
+                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Selesai">Selesai</a>
+                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dibatalkan">Dibatalkan</a>
+                          </div>
+                        </div>
+                      </td>
               </tr>`;
               tabledatabawah.innerHTML = tabledata_bawah;
             });
-          }else if(data.data().status == "Sudah Datang"){
-            var id = data.data().checkout_jasa[0].item_id;
-            var amount = data.data().checkout_jasa[0].amount;
-            var total = hitungtotal(id, amount);
-            var p = Promise.resolve(total);
+          }else if(data.data().status == "Menunggu_Pembayaran"){
+            var p;
 
-            var waktu = new Date(data.data().tanggal_pesen);
+            var waktu = new Date(data.data().time);
             var str = data.data().status;
             var newstr = str.replace('_', ' ');
 
-            p.then(function(v) {
-              tabledata_atas += `
-              <tr class="row100 body">
-                <td>${data.data().antrian}</td>
-                <td>${data.id}</td>
-                <td>${data.data().user_id}</td>
-                <td>${waktu.getDate()}-${waktu.getMonth()+1}-${waktu.getFullYear()}</td>
-                <td>${data.data().checkout_jasa[0].item_id}</td>
-                <td>${data.data().checkout_jasa[0].amount}</td>
-                <td>Rp ${v}</td>
-                <td><a class="btn btn-primary">${newstr}</a></td>
-              </tr>`;
-              tabledataatas.innerHTML = tabledata_atas;
-            });
+            data.data().checkout_items.forEach(items => {
+              var id = items.item_id;
+              var amount = items.amount;
+              var total = hitungtotal_p(id, amount);
+              p = Promise.resolve(total);              
+              
+              p.then(function(v) {
+                  tabledata_pr += `
+                  <tr class="row100 body">
+                    <td>${data.id}</td>
+                    <td>${data.data().user_id}</td>
+                    <td>${waktu.getDate()}-${waktu.getMonth()+1}-${waktu.getFullYear()}</td>
+                    <td>${items.item_id}</td>
+                    <td>${items.amount}</td>
+                    <td>Rp ${v}</td>
+                    <td>
+                      <div class="btn-group">
+                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          ${newstr}
+                        </button>
+                        <div class="dropdown-menu">
+                          <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Menunggu_Pembayaran">Menunggu Pembayaran</a>
+                          <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dikirim">Dikirim</a>
+                          <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Sampai">Sampai</a>
+                          <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dibatalkan">Dibatalkan</a>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>`;
+                  tabledatabawah_pr.innerHTML = tabledata_pr;
+                })
+            })
+          }else{
+            if(data.data().checkout_jasa == null){
+              var p;
+              var waktu = new Date(data.data().time);
+              var str = data.data().status;
+              var newstr = str.replace('_', ' ');
+
+              data.data().checkout_items.forEach(items => {
+                var id = items.item_id;
+                var amount = items.amount;
+                var total = hitungtotal_p(id, amount);
+                p = Promise.resolve(total);              
+
+                p.then(function(v) {
+                  tabledata_atas += `
+                    <tr class="row100 body">
+                      <td>${data.id}</td>
+                      <td>${data.data().user_id}</td>
+                      <td>${waktu.getDate()}-${waktu.getMonth()+1}-${waktu.getFullYear()}</td>
+                      <td>${items.item_id}</td>
+                      <td>${items.amount}</td>
+                      <td>Rp ${v}</td>
+                      <td>
+                        <div class="btn-group">
+                          <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            ${newstr}
+                          </button>
+                          <div class="dropdown-menu">
+                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Menunggu_Pembayaran">Menunggu Pembayaran</a>
+                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dikirim">Dikirim</a>
+                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Sampai">Sampai</a>
+                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dibatalkan">Dibatalkan</a>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>`;
+                    tabledataatas.innerHTML = tabledata_atas;
+                  })
+              })
+            }else{  
+              var id = data.data().checkout_jasa[0].item_id;
+              var amount = data.data().checkout_jasa[0].amount;
+              var total = hitungtotal(id, amount);
+              var p = Promise.resolve(total);
+
+              var waktu = new Date(data.data().tanggal_pesen);
+              var str = data.data().status;
+              var newstr = str.replace('_', ' ');
+
+              p.then(function(v) {
+                tabledata_atas += `
+                <tr class="row100 body">
+                  <td>${data.id}</td>
+                  <td>${data.data().user_id}</td>
+                  <td>${waktu.getDate()}-${waktu.getMonth()+1}-${waktu.getFullYear()}</td>
+                  <td>${id}</td>
+                  <td>${amount}</td>
+                  <td>Rp ${v}</td>
+                  <td>
+                        <div class="btn-group">
+                          <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            ${newstr}
+                          </button>
+                          <div class="dropdown-menu">
+                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Belum_Datang">Belum Datang</a>
+                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Sudah_Datang">Sudah Datang</a>
+                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dikerjakan">Dikerjakan</a>
+                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Selesai">Selesai</a>
+                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dibatalkan">Dibatalkan</a>
+                          </div>
+                        </div>
+                      </td>
+                </tr>`;
+                tabledataatas.innerHTML = tabledata_atas;
+              });
+            }
           }
       });
     }
@@ -363,6 +499,11 @@
     async function hitungtotal(id, amount){
         const docSnap_js = await getDoc(doc(db, "jasa", id));
         total = docSnap_js.data().harga_js * amount;  
+        return total;
+    }
+    async function hitungtotal_p(id, amount){
+        const docSnap_pr = await getDoc(doc(db, "product", id));
+        total = docSnap_pr.data().harga_pr * amount;  
         return total;
     }
 
@@ -389,7 +530,8 @@
         alert(txt);
     }
   </script>
-  <script src="login.js"></script>
+  <script src="login.js"></script><script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 </body>
 
 </html>

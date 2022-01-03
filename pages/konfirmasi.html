@@ -44,20 +44,73 @@
         return vars;
     }
     var id = $_GET('id');
+    var act = $_GET('act');
 
     debug.textContent = "UPDATING " + id + " . . . ";
     
     var ref_ch = doc(db, "checkoutHistories", id);
     const docSnap_ch = await getDoc(ref_ch);
-    const docref = await updateDoc(
-        ref_ch, {
-            status: "Sudah Datang"
-        }
-    )
-    .then(() => {
-        console.log("a");
-        location.href = "rekap.html"
-    })
+    var docref;
+    switch(act){
+        case 'Dikirim':
+            docref = await updateDoc(
+                ref_ch, {
+                    status: "Dikirim"
+                }
+            )
+            break;
+        case 'Sampai':
+            docref = await updateDoc(
+                ref_ch, {
+                    status: "Sampai"
+                }
+            )
+            break;
+        case 'Dibatalkan':
+            docref = await updateDoc(
+                ref_ch, {
+                    status: "Dibatalkan"
+                }
+            )
+            break;
+        case 'Menunggu_Pembayaran':
+            docref = await updateDoc(
+                ref_ch, {
+                    status: "Menunggu_Pembayaran"
+                }
+            )
+            break;
+        case 'Belum_Datang':
+            docref = await updateDoc(
+                ref_ch, {
+                    status: "Belum_Datang"
+                }
+            )
+            break;
+        case 'Sudah_Datang':
+            docref = await updateDoc(
+                ref_ch, {
+                    status: "Sudah_Datang"
+                }
+            )
+            break;
+        case 'Dikerjakan':
+            docref = await updateDoc(
+                ref_ch, {
+                    status: "Dikerjakan"
+                }
+            )
+            break;
+        case 'Selesai':
+            docref = await updateDoc(
+                ref_ch, {
+                    status: "Selesai"
+                }
+            )
+            break;
+    }
+    await sleep(1000);
+    location.href = "rekap.html";
 
     async function out(){
         debug.textContent = "Menghapus " + id + "....";
