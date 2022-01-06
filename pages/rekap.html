@@ -56,7 +56,7 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link  active" href="../pages/tables.html">
+          <a class="nav-link" href="../pages/tables.html">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
               <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                 <title>office</title>
@@ -93,6 +93,26 @@
               </svg>
             </div>
             <span class="nav-link-text ms-1">Input Data</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link  " href="../pages/inputjasa.html">
+            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+              <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                <title>credit-card</title>
+                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                  <g transform="translate(-2169.000000, -745.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                    <g transform="translate(1716.000000, 291.000000)">
+                      <g transform="translate(453.000000, 454.000000)">
+                        <path class="color-background opacity-6" d="M43,10.7482083 L43,3.58333333 C43,1.60354167 41.3964583,0 39.4166667,0 L3.58333333,0 C1.60354167,0 0,1.60354167 0,3.58333333 L0,10.7482083 L43,10.7482083 Z"></path>
+                        <path class="color-background" d="M0,16.125 L0,32.25 C0,34.2297917 1.60354167,35.8333333 3.58333333,35.8333333 L39.4166667,35.8333333 C41.3964583,35.8333333 43,34.2297917 43,32.25 L43,16.125 L0,16.125 Z M19.7083333,26.875 L7.16666667,26.875 L7.16666667,23.2916667 L19.7083333,23.2916667 L19.7083333,26.875 Z M35.8333333,26.875 L28.6666667,26.875 L28.6666667,23.2916667 L35.8333333,23.2916667 L35.8333333,26.875 Z"></path>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </svg>
+            </div>
+            <span class="nav-link-text ms-1">Input Data Jasa </span>
           </a>
         </li>
 		<li class="nav-item">
@@ -179,10 +199,11 @@
     <div class="container-fluid py-4">
       <div class="row">
         <div class="col-12">
+          <h4 id="totals"></h4>
 		<table class="table table-sort table-arrows">
 			<thead class="text-center">
 				<tr>
-					<th class="order-by-desc">
+					<th>
 						Kode Pesanan
 					</th>
 					<th>
@@ -327,170 +348,278 @@
     import { getStorage, ref, getDownloadURL, listAll   } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
     const storage = getStorage();
 
+    var formatter = new Intl.NumberFormat('RP', {
+      style: 'currency',
+      currency: 'IDR',
+
+      // These options are needed to round to whole numbers if that's what you want.
+      minimumFractionDigits: 3, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
+      //maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
+    });
+
     // == READ ==
+
+    var date = new Date();
+    var date_now = date.getMonth()+1+"-"+date.getFullYear();
 
     async function readData(){
       var ref_ch = query(collection(db, "checkoutHistories"));
       const tabledataatas = document.getElementById('tableatas');
       const tabledatabawah = document.getElementById('tablebawah');
       const tabledatabawah_pr = document.getElementById('tablebawah_pr');
+      const totalsz = document.getElementById('totals');
       const docSnap_ch = await getDocs(ref_ch);
       var tabledata_atas = "";
       var tabledata_bawah = "";
       var tabledata_pr = "";
+      var totalss = "";
+      var kren = 0;
+      var keren;
 
       docSnap_ch.forEach(data => {
-          if(data.data().status == "Belum_Datang"){
-            var id = data.data().checkout_jasa[0].item_id;
-            var amount = data.data().checkout_jasa[0].amount;
-            var total = hitungtotal(id, amount);
-            var p = Promise.resolve(total);
-
             var waktu = new Date(data.data().tanggal_pesen);
-            var str = data.data().status;
-            var newstr = str.replace('_', ' ');
+            var date_w = waktu.getMonth()+1+"-"+waktu.getFullYear();
+            var waktu2 = new Date(data.data().time);
+            var date_w2 = waktu2.getMonth()+1+"-"+waktu2.getFullYear();
+            if(date_w == date_now || date_w2 == date_now){
+              if(data.data().status == "Belum_Datang"){
+                var id = data.data().checkout_jasa[0].item_id;
+                var amount = data.data().checkout_jasa[0].amount;
+                var total = hitungtotal(id, amount);
+                var p = Promise.resolve(total);
 
-            p.then(function(v) {
-              tabledata_bawah += `
-              <tr class="row100 body">
-                <td>${data.data().antrian}</td>
-                <td>${data.id}</td>
-                <td>${data.data().user_id}</td>
-                <td>${waktu.getDate()}-${waktu.getMonth()+1}-${waktu.getFullYear()}</td>
-                <td>${data.data().checkout_jasa[0].item_id}</td>
-                <td>${data.data().checkout_jasa[0].amount}</td>
-                <td>Rp ${v}</td>
-                <td>
-                        <div class="btn-group">
-                          <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            ${newstr}
-                          </button>
-                          <div class="dropdown-menu">
-                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Belum_Datang">Belum Datang</a>
-                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Sudah_Datang">Sudah Datang</a>
-                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dikerjakan">Dikerjakan</a>
-                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Selesai">Selesai</a>
-                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dibatalkan">Dibatalkan</a>
-                          </div>
-                        </div>
-                      </td>
-              </tr>`;
-              tabledatabawah.innerHTML = tabledata_bawah;
-            });
-          }else if(data.data().status == "Menunggu_Pembayaran"){
-            var p;
+                var waktu = new Date(data.data().tanggal_pesen);
+                var str = data.data().status;
+                var newstr = str.replace('_', ' ');
 
-            var waktu = new Date(data.data().time);
-            var str = data.data().status;
-            var newstr = str.replace('_', ' ');
-
-            data.data().checkout_items.forEach(items => {
-              var id = items.item_id;
-              var amount = items.amount;
-              var total = hitungtotal_p(id, amount);
-              p = Promise.resolve(total);              
-              
-              p.then(function(v) {
-                  tabledata_pr += `
+                p.then(function(v) {
+                  tabledata_bawah += `
                   <tr class="row100 body">
+                    <td>${data.data().antrian}</td>
                     <td>${data.id}</td>
                     <td>${data.data().user_id}</td>
                     <td>${waktu.getDate()}-${waktu.getMonth()+1}-${waktu.getFullYear()}</td>
-                    <td>${items.item_id}</td>
-                    <td>${items.amount}</td>
-                    <td>Rp ${v}</td>
+                    <td>${data.data().checkout_jasa[0].item_id}</td>
+                    <td>${data.data().checkout_jasa[0].amount}</td>
+                    <td>${formatter.format(v)}</td>
                     <td>
-                      <div class="btn-group">
-                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                          ${newstr}
-                        </button>
-                        <div class="dropdown-menu">
-                          <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Menunggu_Pembayaran">Menunggu Pembayaran</a>
-                          <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dikirim">Dikirim</a>
-                          <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Sampai">Sampai</a>
-                          <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dibatalkan">Dibatalkan</a>
-                        </div>
-                      </div>
-                    </td>
+                            <div class="btn-group">
+                              <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                ${newstr}
+                              </button>
+                              <div class="dropdown-menu">
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Belum_Datang">Belum Datang</a>
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Sudah_Datang">Sudah Datang</a>
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dikerjakan">Dikerjakan</a>
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Selesai">Selesai</a>
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dibatalkan">Dibatalkan</a>
+                              </div>
+                            </div>
+                          </td>
                   </tr>`;
-                  tabledatabawah_pr.innerHTML = tabledata_pr;
+                  tabledatabawah.innerHTML = tabledata_bawah;
+                });
+              }else if(data.data().status == "Menunggu_Pembayaran"){
+                var p;
+
+                var waktu = new Date(data.data().time);
+                var str = data.data().status;
+                var newstr = str.replace('_', ' ');
+
+                data.data().checkout_items.forEach(items => {
+                  var id = items.item_id;
+                  var amount = items.amount;
+                  var total = hitungtotal_p(id, amount);
+                  p = Promise.resolve(total);              
+                  
+                  p.then(function(v) {
+                      tabledata_pr += `
+                      <tr class="row100 body">
+                        <td>${data.id}</td>
+                        <td>${data.data().user_id}</td>
+                        <td>${waktu.getDate()}-${waktu.getMonth()+1}-${waktu.getFullYear()}</td>
+                        <td>${items.item_id}</td>
+                        <td>${items.amount}</td>
+                        <td>${formatter.format(v)}</td>
+                        <td>
+                          <div class="btn-group">
+                            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              ${newstr}
+                            </button>
+                            <div class="dropdown-menu">
+                              <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Menunggu_Pembayaran">Menunggu Pembayaran</a>
+                              <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dikirim">Dikirim</a>
+                              <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Sampai">Sampai</a>
+                              <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dibatalkan">Dibatalkan</a>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>`;
+                      tabledatabawah_pr.innerHTML = tabledata_pr;
+                    })
                 })
-            })
-          }else{
-            if(data.data().checkout_jasa == null){
-              var p;
-              var waktu = new Date(data.data().time);
-              var str = data.data().status;
-              var newstr = str.replace('_', ' ');
+              }else if(data.data().status == "Dibatalkan"){
+                if(data.data().checkout_jasa == null){
+                  var p;
+                  var waktu = new Date(data.data().time);
+                  var str = data.data().status;
+                  var newstr = str.replace('_', ' ');
 
-              data.data().checkout_items.forEach(items => {
-                var id = items.item_id;
-                var amount = items.amount;
-                var total = hitungtotal_p(id, amount);
-                p = Promise.resolve(total);              
+                  data.data().checkout_items.forEach(items => {
+                    var id = items.item_id;
+                    var amount = items.amount;
+                    var total = hitungtotal_p(id, amount);
+                    p = Promise.resolve(total);              
 
-                p.then(function(v) {
-                  tabledata_atas += `
+                    p.then(function(v) {
+                      tabledata_atas += `
+                        <tr class="row100 body">
+                          <td>${data.id}</td>
+                          <td>${data.data().user_id}</td>
+                          <td>${waktu.getDate()}-${waktu.getMonth()+1}-${waktu.getFullYear()}</td>
+                          <td>${items.item_id}</td>
+                          <td>${items.amount}</td>
+                          <td>${formatter.format(v)}</td>
+                          <td>
+                            <div class="btn-group">
+                              <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                ${newstr}
+                              </button>
+                              <div class="dropdown-menu">
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Menunggu_Pembayaran">Menunggu Pembayaran</a>
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dikirim">Dikirim</a>
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Sampai">Sampai</a>
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dibatalkan">Dibatalkan</a>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>`;
+                        tabledataatas.innerHTML = tabledata_atas;
+                      })
+                  })
+                }else{  
+                  var id = data.data().checkout_jasa[0].item_id;
+                  var amount = data.data().checkout_jasa[0].amount;
+                  var total = hitungtotal(id, amount);
+                  var p = Promise.resolve(total);
+
+                  var waktu = new Date(data.data().tanggal_pesen);
+                  var str = data.data().status;
+                  var newstr = str.replace('_', ' ');
+
+                  p.then(function(v) {
+                    tabledata_atas += `
                     <tr class="row100 body">
                       <td>${data.id}</td>
                       <td>${data.data().user_id}</td>
                       <td>${waktu.getDate()}-${waktu.getMonth()+1}-${waktu.getFullYear()}</td>
-                      <td>${items.item_id}</td>
-                      <td>${items.amount}</td>
-                      <td>Rp ${v}</td>
+                      <td>${id}</td>
+                      <td>${amount}</td>
+                      <td>${formatter.format(v)}</td>
                       <td>
-                        <div class="btn-group">
-                          <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            ${newstr}
-                          </button>
-                          <div class="dropdown-menu">
-                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Menunggu_Pembayaran">Menunggu Pembayaran</a>
-                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dikirim">Dikirim</a>
-                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Sampai">Sampai</a>
-                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dibatalkan">Dibatalkan</a>
-                          </div>
-                        </div>
-                      </td>
+                            <div class="btn-group">
+                              <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                ${newstr}
+                              </button>
+                              <div class="dropdown-menu">
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Belum_Datang">Belum Datang</a>
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Sudah_Datang">Sudah Datang</a>
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dikerjakan">Dikerjakan</a>
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Selesai">Selesai</a>
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dibatalkan">Dibatalkan</a>
+                              </div>
+                            </div>
+                          </td>
                     </tr>`;
                     tabledataatas.innerHTML = tabledata_atas;
+                  });
+                }
+              }else{
+                if(data.data().checkout_jasa == null){
+                  var p;
+                  var waktu = new Date(data.data().time);
+                  var str = data.data().status;
+                  var newstr = str.replace('_', ' ');
+
+                  data.data().checkout_items.forEach(items => {
+                    var id = items.item_id;
+                    var amount = items.amount;
+                    var total = hitungtotal_p(id, amount);
+                    p = Promise.resolve(total);              
+
+                    keren = p.then(function(v) {
+                      tabledata_atas += `
+                        <tr class="row100 body">
+                          <td>${data.id}</td>
+                          <td>${data.data().user_id}</td>
+                          <td>${waktu.getDate()}-${waktu.getMonth()+1}-${waktu.getFullYear()}</td>
+                          <td>${items.item_id}</td>
+                          <td>${items.amount}</td>
+                          <td>${formatter.format(v)}</td>
+                          <td>
+                            <div class="btn-group">
+                              <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                ${newstr}
+                              </button>
+                              <div class="dropdown-menu">
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Menunggu_Pembayaran">Menunggu Pembayaran</a>
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dikirim">Dikirim</a>
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Sampai">Sampai</a>
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dibatalkan">Dibatalkan</a>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>`;
+                        tabledataatas.innerHTML = tabledata_atas;
+                        kren = kren + v;
+                        return kren;
+                      })
                   })
-              })
-            }else{  
-              var id = data.data().checkout_jasa[0].item_id;
-              var amount = data.data().checkout_jasa[0].amount;
-              var total = hitungtotal(id, amount);
-              var p = Promise.resolve(total);
+                }else{  
+                  var id = data.data().checkout_jasa[0].item_id;
+                  var amount = data.data().checkout_jasa[0].amount;
+                  var total = hitungtotal(id, amount);
+                  var p = Promise.resolve(total);
 
-              var waktu = new Date(data.data().tanggal_pesen);
-              var str = data.data().status;
-              var newstr = str.replace('_', ' ');
+                  var waktu = new Date(data.data().tanggal_pesen);
+                  var str = data.data().status;
+                  var newstr = str.replace('_', ' ');
 
-              p.then(function(v) {
-                tabledata_atas += `
-                <tr class="row100 body">
-                  <td>${data.id}</td>
-                  <td>${data.data().user_id}</td>
-                  <td>${waktu.getDate()}-${waktu.getMonth()+1}-${waktu.getFullYear()}</td>
-                  <td>${id}</td>
-                  <td>${amount}</td>
-                  <td>Rp ${v}</td>
-                  <td>
-                        <div class="btn-group">
-                          <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            ${newstr}
-                          </button>
-                          <div class="dropdown-menu">
-                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Belum_Datang">Belum Datang</a>
-                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Sudah_Datang">Sudah Datang</a>
-                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dikerjakan">Dikerjakan</a>
-                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Selesai">Selesai</a>
-                            <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dibatalkan">Dibatalkan</a>
-                          </div>
-                        </div>
-                      </td>
-                </tr>`;
-                tabledataatas.innerHTML = tabledata_atas;
-              });
+                  keren = p.then(function(v) {
+                    tabledata_atas += `
+                    <tr class="row100 body">
+                      <td>${data.id}</td>
+                      <td>${data.data().user_id}</td>
+                      <td>${waktu.getDate()}-${waktu.getMonth()+1}-${waktu.getFullYear()}</td>
+                      <td>${id}</td>
+                      <td>${amount}</td>
+                      <td>${formatter.format(v)}</td>
+                      <td>
+                            <div class="btn-group">
+                              <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                ${newstr}
+                              </button>
+                              <div class="dropdown-menu">
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Belum_Datang">Belum Datang</a>
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Sudah_Datang">Sudah Datang</a>
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dikerjakan">Dikerjakan</a>
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Selesai">Selesai</a>
+                                <a class="dropdown-item" href="konfirmasi.html?id=${data.id}&act=Dibatalkan">Dibatalkan</a>
+                              </div>
+                            </div>
+                          </td>
+                    </tr>`;
+                    tabledataatas.innerHTML = tabledata_atas;
+                    kren = kren + v;
+                    return kren;
+                  });
+                  keren.then( (v) => {
+                    console.log(formatter.format(v));
+                    totalss = `
+                    TOTAL PEMASUKAN: <span class="text-info">${formatter.format(v)}</span>`
+                    totalsz.innerHTML = totalss;
+                  })
+                }
             }
           }
       });
